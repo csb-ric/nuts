@@ -117,6 +117,14 @@ app.use(function(err, req, res, next) {
     });
 });
 
+// Debugging
+if (process.env.DEBUG) {
+    app.all('/.*', function(req, res, next) {
+        console.log(req);
+        next();
+    })
+}
+
 myNuts.init()
 
 // Start the HTTP server
