@@ -88,6 +88,14 @@ if (process.env.TRUST_PROXY) {
     }
 }
 
+// Debugging
+if (process.env.DEBUG) {
+    app.get(/.*/, function(req, res, next) {
+        next();
+        console.log(req.method, req.url, '=>', res.statusCode, res.statusMessage);
+    })
+}
+
 app.use(myNuts.router);
 
 // Error handling
@@ -117,25 +125,25 @@ app.use(function(err, req, res, next) {
     });
 });
 
-// Debugging
-if (process.env.DEBUG) {
-    app.all('/.*', function(req, res, next) {
-        console.log(req);
-        next();
-    })
-}
+try {
+    myNuts.init()
 
-myNuts.init()
+    // Start the HTTP server
+    .then(function() {
+        var server = app.listen(process.env.PORT || 5000, function () {
+            var host = server.address().address;
+            var port = server.address().port;
 
-// Start the HTTP server
-.then(function() {
-    var server = app.listen(process.env.PORT || 5000, function () {
-        var host = server.address().address;
-        var port = server.address().port;
-
-        console.log('Listening at http://%s:%s', host, port);
+            console.log('Listening at http://%s:%s', host, port);
+        });
+    }, function(err) {
+        console.log("Error about to die...");
+        console.log(err.stack || err);
+        process.exit(1);
     });
-}, function(err) {
-    console.log(err.stack || err);
-    process.exit(1);
-});
+} catch(error) {
+    console.log("Argh I crashed!!");
+    console.log(error);
+    console.log(error.stack);
+    process.exist(1);
+}
